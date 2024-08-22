@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Generate} from "./ui/Button";
+import { Generate, SendMoney} from "./ui/Button";
 import { toast } from "react-hot-toast";
 import bs58 from "bs58";
 import { generateMnemonic, mnemonicToSeed } from "bip39";
@@ -20,8 +20,9 @@ import { ClearWallet } from "./ui/Button";
 import { derivePath } from "ed25519-hd-key";
 import nacl from "tweetnacl";
 import { Keypair } from "@solana/web3.js";
+import { useRouter } from "next/navigation";
 
-interface Wallet {
+export interface Wallet {
     publicKey: string;
     privateKey: string;
     mnemonic: string;
@@ -32,7 +33,6 @@ export const WalletGenerator=()=>{
     const [mnemonic, setMnemonic]=useState("");
     const [showSeed, setSeed]=useState(false);
     const [seeded,setSeeded]=useState<string[]>();
-
 
     const [wallets,setWallets]=useState<Wallet[]>([]);
     const [visiblePrivateKeys, setVisiblePrivateKeys] = useState<boolean[]>([]);
@@ -98,12 +98,15 @@ export const WalletGenerator=()=>{
         }
     }
 
+   
+
     const DeleteWallet=()=>{
         
     }
     const handleDelete=()=>{
         setWallets([]);
         setVisiblePrivateKeys([]);
+        toast.success("Wallets Cleared")
     }
     const copyToClipboard = (content: string) => {
         navigator.clipboard.writeText(content);
@@ -190,7 +193,17 @@ export const WalletGenerator=()=>{
 
 
 const Showwallet=({wallet,index,visiblePrivateKeys,setVisiblePrivateKeys,setWallets,wallets}:any)=>{
+  const router=useRouter();
 
+  const sendMoney = (index: number) => {
+    console.log("Wallet at index", wallets[index]);
+
+    // Store the selected wallet in localStorage
+    localStorage.setItem("selectedWallet", JSON.stringify(wallets[index]));
+
+    // Navigate to the /sendmoney page
+    router.push("/sendmoney");
+  };
 
     const togglePrivateKeyVisibility = (index: number) => {
         console.log("index inside toogle",index)
@@ -223,9 +236,14 @@ const Showwallet=({wallet,index,visiblePrivateKeys,setVisiblePrivateKeys,setWall
                         Wallet {index+1}
                         </p>
                     </div>
-                    <div onClick={()=>handleDeleteWallet(index)} className="hover:cursor-pointer transition hover:-translate-y-1 hover:scale-110  duration-300">
-                        <Trash color="red" size={16} />
-                    </div>   
+                    <div className="flex flex-row justify-between">
+                      <div className="mx-2">
+                        <SendMoney text={"Send Money"} onClick={()=>sendMoney(index)}/>
+                      </div>
+                      <div onClick={()=>handleDeleteWallet(index)} className="flex flex-col justify-center hover:cursor-pointer transition hover:-translate-y-1 hover:scale-110  duration-300">
+                          <Trash color="red" size={20} />
+                      </div>  
+                    </div> 
                 </div>
         
                   <div
